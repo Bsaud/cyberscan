@@ -75,7 +75,7 @@ CyberScan is a professional-grade malware detection system that verifies file ha
 - Python 3.8+
 - pip 22.0+
 - SQLite 3.35+
-- 100MB disk space (for database)
+- 1024MB disk space (for database)
 
 ### Step-by-Step Setup
 
