@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberScan | Malware Hash Analyzer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00ff9d;
+            --secondary: #00b4ff;
+            --dark: #0a192f;
+            --darker: #020c1b;
+            --light: #ccd6f6;
+            --danger: #ff2d75;
+            --success: #00ff9d;
+            --warning: #ff9e00;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            font-family: 'Roboto Mono', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        
+        .cyber-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 255, 157, 0.05) 0%, transparent 25%),
+                radial-gradient(circle at 80% 70%, rgba(0, 180, 255, 0.05) 0%, transparent 25%);
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(0, 255, 157, 0.2);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo i {
+            color: var(--primary);
+            font-size: 2rem;
+        }
+        
+        .logo h1 {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+        }
+        
+        .scan-options {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .scan-option {
+            flex: 1;
+            background: rgba(10, 25, 47, 0.8);
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 157, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .scan-option:hover {
+            border-color: rgba(0, 255, 157, 0.3);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+        
+        .scan-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .scan-header i {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+        
+        .scan-header h2 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--light);
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .form-group label {
+            font-size: 0.9rem;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .form-group label i {
+            font-size: 0.8rem;
+        }
+        
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-wrapper i {
+            position: absolute;
+            left: 1rem;
+            color: var(--primary);
+        }
+        
+        .input-wrapper input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            background: rgba(2, 12, 27, 0.7);
+            border: 1px solid rgba(0, 255, 157, 0.2);
+            border-radius: 5px;
+            color: var(--light);
+            font-family: 'Roboto Mono', monospace;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 255, 157, 0.2);
+        }
+        
+        .input-wrapper input::placeholder {
+            color: rgba(204, 214, 246, 0.5);
+        }
+        
+        .file-upload-wrapper {
+            position: relative;
+            margin: 1rem 0;
+        }
+        
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .file-upload-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 2rem;
+            background: rgba(2, 12, 27, 0.7);
+            border: 2px dashed rgba(0, 180, 255, 0.3);
+            border-radius: 5px;
+            text-align: center;
+            transition: all 0.3s ease;
+            min-height: 150px;
+        }
+        
+        .file-upload-label:hover {
+            border-color: var(--secondary);
+            background: rgba(0, 180, 255, 0.1);
+        }
+        
+        .file-upload-label i {
+            font-size: 2rem;
+            color: var(--secondary);
+        }
+        
+        .file-upload-label span {
+            font-size: 1rem;
+            color: var(--light);
+        }
+        
+        .file-info {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: rgba(204, 214, 246, 0.7);
+            text-align: center;
+        }
+        
+        .file-types {
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: rgba(204, 214, 246, 0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .file-types code {
+            background: rgba(2, 12, 27, 0.5);
+            padding: 0.3rem 0.5rem;
+            border-radius: 3px;
+            font-family: 'Roboto Mono', monospace;
+            color: var(--secondary);
+            font-size: 0.75rem;
+        }
+        
+        .hash-examples {
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: rgba(204, 214, 246, 0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .hash-examples code {
+            background: rgba(2, 12, 27, 0.5);
+            padding: 0.3rem 0.5rem;
+            border-radius: 3px;
+            font-family: 'Roboto Mono', monospace;
+            color: var(--secondary);
+            font-size: 0.75rem;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--darker);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 157, 0.3);
+        }
+        
+        .btn i {
+            font-size: 1.2rem;
+        }
+        
+        .upload-btn {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 2rem 0;
+            color: rgba(204, 214, 246, 0.3);
+        }
+        
+        .divider::before, .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid rgba(0, 255, 157, 0.1);
+        }
+        
+        .divider span {
+            padding: 0 1rem;
+            font-size: 0.8rem;
+        }
+        
+        footer {
+            margin-top: 3rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: rgba(204, 214, 246, 0.5);
+            padding: 1rem;
+            border-top: 1px solid rgba(0, 255, 157, 0.1);
+        }
+        
+        /* Terminal-like animation */
+        @keyframes terminal-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .terminal-cursor {
+            display: inline-block;
+            width: 10px;
+            height: 1.2rem;
+            background: var(--primary);
+            vertical-align: middle;
+            margin-left: 2px;
+            animation: terminal-blink 1s step-end infinite;
+        }
+        
+        /* Tabs */
+        .tab-container {
+            display: flex;
+            margin-bottom: -1px;
+        }
+        
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: rgba(10, 25, 47, 0.5);
+            border: 1px solid rgba(0, 255, 157, 0.1);
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background: rgba(10, 25, 47, 0.8);
+            border-color: rgba(0, 255, 157, 0.3);
+            color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .scan-options {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            
+            .scan-option {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cyber-bg"></div>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <h1>CyberScan</h1>
+            </div>
+            <div class="last-scan">
+                <span id="last-scan-time"></span>
+            </div>
+        </header>
+        
+        <main>
+            <div class="tab-container">
+                <div class="tab active" data-tab="hash">HASH SCAN</div>
+                <div class="tab" data-tab="file">FILE SCAN</div>
+            </div>
+            
+            <div class="scan-option">
+                <!-- Hash Scan Tab -->
+                <div id="hash-tab" class="tab-content active">
+                    <div class="scan-header">
+                        <i class="fas fa-search"></i>
+                        <h2>SCAN BY HASH</h2>
+                    </div>
+                    
+                    <form class="scan-form" method="POST" action="/">
+                        <input type="hidden" name="scan_type" value="hash">
+                        <div class="form-group">
+                            <label for="hash">
+                                <i class="fas fa-fingerprint"></i>
+                                ENTER MD5 OR SHA256 HASH
+                            </label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-barcode"></i>
+                                <input type="text" id="hash" name="hash" placeholder="Paste hash here..." required>
+                            </div>
+                            <div class="hash-examples">
+                                <span>Example hashes:</span>
+                                <code>MD5: 098f6bcd4621d373cade4e832627b4f6</code>
+                                <code>SHA256: 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08</code>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn">
+                            <i class="fas fa-search"></i>
+                            SCAN HASH
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- File Scan Tab -->
+                <div id="file-tab" class="tab-content">
+                    <div class="scan-header">
+                        <i class="fas fa-file-upload"></i>
+                        <h2>SCAN BY FILE UPLOAD</h2>
+                    </div>
+                    
+                    <form class="upload-form" method="POST" action="/" enctype="multipart/form-data">
+                        <input type="hidden" name="scan_type" value="file">
+                        <div class="form-group">
+                            <label for="file">
+                                <i class="fas fa-file"></i>
+                                SELECT FILE TO ANALYZE
+                            </label>
+                            <div class="file-upload-wrapper">
+                                <input type="file" id="file" name="file" required>
+                                <label for="file" class="file-upload-label">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <span>Drag & drop file here or click to browse</span>
+                                </label>
+                                <div class="file-info" id="file-info">No file selected</div>
+                            </div>
+                            <div class="file-types">
+                                <span>Supported file types:</span>
+                                <code>EXE, DLL, MSI, BAT, PS1, JS, VBS, DOC, XLS, PPT, PDF</code>
+                                <span>Max file size: 50MB</span>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn upload-btn">
+                            <i class="fas fa-upload"></i>
+                            UPLOAD & SCAN
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="divider">
+                <span>OR</span>
+            </div>
+            
+            <div class="scan-option">
+                <div class="scan-header">
+                    <i class="fas fa-history"></i>
+                    <h2>RECENT SCANS</h2>
+                </div>
+                <div class="empty-state">
+                    <i class="fas fa-clock"></i>
+                    <p>Your scan history will appear here</p>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>CyberScan v2.0 | Advanced Malware Analysis Platform</p>
+            <p>© 2023 Threat Intelligence Division. All rights reserved.</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Update last scan time
+        function updateLastScanTime() {
+            const now = new Date();
+            const options = { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true 
+            };
+            document.getElementById('last-scan-time').textContent = `Last scan: ${now.toLocaleTimeString('en-US', options)}`;
+        }
+        
+        // Update every second
+        updateLastScanTime();
+        setInterval(updateLastScanTime, 1000);
+        
+        // Tab functionality
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+            });
+        });
+        
+        // File upload display
+        const fileInput = document.getElementById('file');
+        const fileInfo = document.getElementById('file-info');
+        
+        fileInput.addEventListener('change', (e) => {
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                fileInfo.textContent = `${file.name} (${formatFileSize(file.size)})`;
+            } else {
+                fileInfo.textContent = 'No file selected';
+            }
+        });
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Drag and drop functionality
+        const uploadLabel = document.querySelector('.file-upload-label');
+        
+        uploadLabel.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadLabel.style.borderColor = 'var(--primary)';
+            uploadLabel.style.background = 'rgba(0, 255, 157, 0.1)';
+        });
+        
+        uploadLabel.addEventListener('dragleave', () => {
+            uploadLabel.style.borderColor = 'rgba(0, 180, 255, 0.3)';
+            uploadLabel.style.background = 'rgba(2, 12, 27, 0.7)';
+        });
+        
+        uploadLabel.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadLabel.style.borderColor = 'rgba(0, 180, 255, 0.3)';
+            uploadLabel.style.background = 'rgba(2, 12, 27, 0.7)';
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                const event = new Event('change');
+                fileInput.dispatchEvent(event);
+            }
+        });
+    </script>
+</body>
+</html>
