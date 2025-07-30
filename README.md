@@ -81,6 +81,6 @@ CyberScan is a professional-grade malware detection system that verifies file ha
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/cyberscan.git
+   git clone https://github.com/Bsaud/cyberscan.git
    cd cyberscan
    python3 app.py
