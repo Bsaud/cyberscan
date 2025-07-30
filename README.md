@@ -1,5 +1,7 @@
 # CyberScan Malware Hash Checker
-<img width="1265" height="856" alt="image" src="https://github.com/user-attachments/assets/008c17a8-836e-435e-aae0-bf7d1f22f507" />
+
+<img width="1267" height="852" alt="Dashboard" src="https://github.com/user-attachments/assets/8349bbff-408b-41a9-9649-e566705b1446" />
+
 
 CyberScan is a professional-grade malware detection system that verifies file hashes against an extensive malware database. It offers both manual hash verification and automated file analysis with comprehensive reporting.
 
